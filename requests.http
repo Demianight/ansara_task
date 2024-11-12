@@ -1,0 +1,137 @@
+@base_url = http://127.0.0.1:8000/api
+@demian_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxNDIwMDUzLCJpYXQiOjE3MzE0MTY0NTMsImp0aSI6IjE4YTNmMjgyOTQxNDQ1NDE4MTkwMGQ2MzllNzY2M2E3IiwidXNlcl9pZCI6MX0.lqGONfodzZn9fXWDhGvK1re9YuvFhEdGsD-GU-xMLGA
+@john_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxNDIwMDY2LCJpYXQiOjE3MzE0MTY0NjYsImp0aSI6IjI5NjU0NzdjNGQyZjRjMzViZDkwMGVmYjZmYzlmMTcxIiwidXNlcl9pZCI6Mn0.uo0HsEFCZ8N-sQm8Q2bzW88Sx96l8KsanPHVpF3Zer0
+
+### 200
+GET {{base_url}}/users
+
+
+### 201 if not duplicate
+POST {{base_url}}/users/
+Content-Type: application/json
+
+{
+    "username": "Demian",
+    "password": "1Demian2"
+}
+
+
+### 200
+GET {{base_url}}/tasks
+
+
+### 200
+GET {{base_url}}/tasks/1
+
+
+### 200 if correct credentials
+POST {{base_url}}/token/
+Content-Type: application/json
+
+{
+    "username": "Demian",
+    "password": "1Demian2"
+}
+
+
+### 201 if not duplicate
+POST {{base_url}}/users/
+Content-Type: application/json
+
+{
+    "username": "John",
+    "password": "JohnJohnJohnJohn"
+}
+
+
+### 200 if correct credentials
+POST {{base_url}}/token/
+Content-Type: application/json
+
+{
+    "username": "John",
+    "password": "JohnJohnJohnJohn"
+}
+
+
+### 401 due to token missing
+POST {{base_url}}/tasks/
+Content-Type: application/json
+
+{
+    "description": "EPIC NEW TASK",
+    "current_status": "created"
+}
+
+
+### 201
+POST {{base_url}}/tasks/
+Content-Type: application/json
+Authorization: Bearer {{demian_token}}
+
+{
+    "description": "EPIC NEW TASK",
+    "current_status": "created"
+}
+
+
+### 200 if exists 404 otherwise
+GET {{base_url}}/tasks/2
+
+
+### 204 if exists 404 otherwise
+DELETE {{base_url}}/tasks/2/
+Authorization: Bearer {{demian_token}}
+
+
+### 201 if user exists
+POST {{base_url}}/task_status_history/
+Content-Type: application/json
+Authorization: Bearer {{john_token}}
+
+{
+    "task": 1,
+    "status": "complete",
+    "user_id": 3
+}
+
+### 204 if task status history exists
+DELETE {{base_url}}/task_status_history/4/
+Authorization: Bearer {{demian_token}}
+
+
+### 204 if exists
+DELETE {{base_url}}/tasks/3/
+Authorization: Bearer {{demian_token}}
+
+
+### 200 if task exists
+GET {{base_url}}/tasks/1/comments
+
+
+### 404
+GET {{base_url}}/tasks/10000/comments
+
+
+### 201 with correct data and task exists
+POST {{base_url}}/tasks/1/comments/
+Content-Type: application/json
+Authorization: Bearer {{demian_token}}
+
+{
+    "text": "COMMENT COMMENT COMMENT COMMENT COMMENT COMMENT"
+}
+
+### 404
+POST {{base_url}}/tasks/10000/comments/
+Content-Type: application/json
+Authorization: Bearer {{demian_token}}
+
+{
+    "text": "COMMENT COMMENT COMMENT"
+}
+
+
+###
+DELETE {{base_url}}/comments/4/
+Authorization: Bearer {{demian_token}}
