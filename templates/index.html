@@ -30,13 +30,14 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const errorOutput = document.getElementById('errorOutput');
+      const baseUrl = window.location.origin;
 
       try {
         // Clear any previous errors
         errorOutput.textContent = '';
 
         // Register user
-        const registerResponse = await fetch('http://127.0.0.1:8000/api/users/', {
+        const registerResponse = await fetch(`${baseUrl}/api/users/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -51,7 +52,7 @@
         }
 
         // Get token
-        const tokenResponse = await fetch('http://127.0.0.1:8000/api/token/', {
+        const tokenResponse = await fetch(`${baseUrl}/api/token/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -70,7 +71,7 @@
         document.cookie = `access_token=${tokenData.access}; path=/;`;
 
         // Redirect to /tasks
-        window.location.href = '/tasks';
+        window.location.href = `${baseUrl}/tasks`;
       } catch (error) {
         console.error(error);
         errorOutput.textContent = JSON.stringify({ error: error.message }, null, 2);

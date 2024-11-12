@@ -61,18 +61,19 @@
     const addCommentForm = document.getElementById('addCommentForm');
     const commentTextInput = document.getElementById('commentText');
     const taskForCommentSelect = document.getElementById('taskForComment');
+    const baseUrl = window.location.origin;
 
     // Fetch tasks from the API
     async function fetchTasks() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/tasks/');
+        const response = await fetch(`${baseUrl}/api/tasks/`);
         if (!response.ok) {
           throw new Error('Failed to load tasks');
         }
         const tasks = await response.json();
         renderTasks(tasks);
-        populateTaskDropdown(tasks);  // Populate task dropdown
-        populateTaskForCommentDropdown(tasks);  // Populate task for comment dropdown
+        populateTaskDropdown(tasks);
+        populateTaskForCommentDropdown(tasks);
       } catch (error) {
         console.error(error);
         alert('Error fetching tasks: ' + error.message);
@@ -82,12 +83,12 @@
     // Fetch users from the API
     async function fetchUsers() {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/users/');
+        const response = await fetch(`${baseUrl}/api/users/`);
         if (!response.ok) {
           throw new Error('Failed to load users');
         }
         const users = await response.json();
-        populateUserDropdown(users);  // Populate user dropdown
+        populateUserDropdown(users);
       } catch (error) {
         console.error(error);
         alert('Error fetching users: ' + error.message);
@@ -96,7 +97,7 @@
 
     // Render tasks
     function renderTasks(tasks) {
-      taskList.innerHTML = '';  // Clear the current task list
+      taskList.innerHTML = '';
       tasks.forEach(task => {
         const taskItem = document.createElement('li');
         taskItem.innerHTML = `
@@ -112,8 +113,6 @@
               `;
             }).join('')}
           </ul>
-          
-          <!-- Task comments -->
           <button onclick="toggleComments(${task.id})">Toggle Comments</button>
           <div id="comments-${task.id}" style="display:none;">
             <ul>
@@ -124,8 +123,6 @@
               `).join('')}
             </ul>
           </div>
-          
-          <!-- Delete task button -->
           <button onclick="deleteTask(${task.id})">Delete Task</button>
         `;
         taskList.appendChild(taskItem);
@@ -140,7 +137,7 @@
 
     // Populate task dropdown for status change
     function populateTaskDropdown(tasks) {
-      taskSelect.innerHTML = '';  // Clear existing options
+      taskSelect.innerHTML = '';
       tasks.forEach(task => {
         const option = document.createElement('option');
         option.value = task.id;
@@ -151,7 +148,7 @@
 
     // Populate task dropdown for comment creation
     function populateTaskForCommentDropdown(tasks) {
-      taskForCommentSelect.innerHTML = '';  // Clear existing options
+      taskForCommentSelect.innerHTML = '';
       tasks.forEach(task => {
         const option = document.createElement('option');
         option.value = task.id;
@@ -162,7 +159,7 @@
 
     // Populate user dropdown
     function populateUserDropdown(users) {
-      userSelect.innerHTML = '';  // Clear existing options
+      userSelect.innerHTML = '';
       users.forEach(user => {
         const option = document.createElement('option');
         option.value = user.id;
@@ -178,7 +175,7 @@
       const description = taskDescriptionInput.value;
 
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/tasks/', {
+        const response = await fetch(`${baseUrl}/api/tasks/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -193,7 +190,6 @@
           return;
         }
 
-        // Clear the form and fetch updated task list
         taskDescriptionInput.value = '';
         fetchTasks();
       } catch (error) {
@@ -211,7 +207,7 @@
       const userId = userSelect.value;
 
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/task_status_history/', {
+        const response = await fetch(`${baseUrl}/api/task_status_history/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -231,7 +227,7 @@
         }
 
         alert('Status updated successfully');
-        fetchTasks();  // Refresh task list
+        fetchTasks();
       } catch (error) {
         console.error(error);
         alert('Error updating status: ' + error.message);
@@ -246,7 +242,7 @@
       const taskId = taskForCommentSelect.value;
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/comments/`, {
+        const response = await fetch(`${baseUrl}/api/tasks/${taskId}/comments/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -261,9 +257,8 @@
           return;
         }
 
-        // Clear the form and fetch updated task list
         commentTextInput.value = '';
-        fetchTasks();  // Refresh task list
+        fetchTasks();
       } catch (error) {
         console.error(error);
         alert('Error adding comment: ' + error.message);
@@ -276,7 +271,7 @@
       if (!confirmation) return;
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, {
+        const response = await fetch(`${baseUrl}/api/tasks/${taskId}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': 'Bearer ' + getCookie('access_token'),
@@ -290,7 +285,7 @@
         }
 
         alert('Task deleted successfully');
-        fetchTasks();  // Refresh task list
+        fetchTasks();
       } catch (error) {
         console.error(error);
         alert('Error deleting task: ' + error.message);
