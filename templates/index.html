@@ -67,10 +67,10 @@
 
         // Save access_token to cookies under the host domain
         console.log(tokenData.access)
-        document.cookie = `access_token=${tokenData.access}; path=/; domain=127.0.0.1`;
+        document.cookie = `access_token=${tokenData.access}; path=/;`;
 
         // Redirect to /tasks
-        window.location.href = 'http://127.0.0.1:8000/tasks';
+        window.location.href = '/tasks';
       } catch (error) {
         console.error(error);
         errorOutput.textContent = JSON.stringify({ error: error.message }, null, 2);
