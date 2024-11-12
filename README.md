@@ -2,7 +2,9 @@
 
 ## Overview
 
-This project is a simple task tracking API that enables users to create, manage, and update tasks, with support for detailed status tracking and comments. Users can create accounts, authenticate, and track task changes over time, while each task can have multiple statuses updated by various users. 
+This project is a simple task tracking API that enables users to create, manage, and update tasks, with support for detailed status tracking and comments. Users can create accounts, authenticate, and track task changes over time, while each task can have multiple statuses updated by various users. <br>
+
+Interactive docs can be accessed at /swagger or /redoc after host.
 
 ### Key Features
 
