@@ -33,7 +33,7 @@ class TaskStatusHistoryViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             task_status_history: TaskStatusHistory = serializer.save()
             task_status_history.task.set_status(
-                task_status_history.status, self.request.user
+                task_status_history.status, task_status_history.user, False
             )
             if task_status_history.status in (
                 TaskStatus.IN_PROCESS,  # executor set

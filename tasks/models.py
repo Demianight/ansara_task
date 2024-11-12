@@ -18,14 +18,22 @@ class Task(models.Model):
         default=TaskStatus.CREATED,
     )
 
-    def set_status(self, status, user):
+    def set_status(
+        self,
+        status,
+        user,
+        should_history_be_created: bool = True,
+    ):
         if status not in TaskStatus.values:
             raise ValueError("Invalid status")
 
         self.current_status = status
         self.save()
 
-        TaskStatusHistory.objects.create(task=self, status=status, user=user)
+        if should_history_be_created:
+            TaskStatusHistory.objects.create(
+                task=self, status=status, user=user
+            )
 
     def __str__(self):
         return f"Task {self.pk}: {self.description[:20]}..."
