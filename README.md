@@ -49,3 +49,30 @@ This API is designed for deployment on a local server. To run the project:
 
 Run ```docker-compose up --build```, it will pull, initialize and configure the db and Django app. </br>
 Access endpoints via the base URL: http://127.0.0.1:8000/api
+
+---
+
+## Brief endpoint overview
+
+### User Management
+
+- **POST /users/** – Register a new user.
+- **POST /token/** – Obtain an authentication token.
+
+### Tasks
+
+- **GET /tasks/** – View all tasks.
+- **GET /tasks/{id}** – View details of a specific task.
+- **POST /tasks/** – Create a new task (auth required).
+- **DELETE /tasks/{id}/** – Delete a specific task (auth required).
+
+### Task Status History
+
+- **POST /task_status_history/** – Add a new status update for a task (auth required).
+- **DELETE /task_status_history/{id}/** – Delete a status history entry (auth required).
+
+### Comments
+
+- **GET /tasks/{id}/comments** – View all comments for a task.
+- **POST /tasks/{id}/comments/** – Add a comment to a task (auth required).
+- **DELETE /comments/{id}/** – Delete a specific comment (auth required).
