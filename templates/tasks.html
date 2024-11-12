@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>Tasks</h2>
+
+  <!-- Form to add a new task -->
+  <h3>Add a new task</h3>
+  <form id="addTaskForm">
+    <label for="taskDescription">Task Description:</label>
+    <input type="text" id="taskDescription" name="taskDescription" required><br><br>
+    <button type="submit">Add Task</button>
+  </form>
+
+  <h3>All Tasks</h3>
+  <ul id="taskList"></ul>
+
+  <h3>Change Task Status</h3>
+  <!-- Form to change task status -->
+  <form id="changeStatusForm">
+    <label for="taskSelect">Task:</label>
+    <select id="taskSelect" name="taskSelect" required></select><br><br>
+
+    <label for="statusSelect">Status:</label>
+    <select id="statusSelect" name="statusSelect" required>
+      <option value="created">Created</option>
+      <option value="in process">In Process</option>
+      <option value="complete">Complete</option>
+      <option value="reviewed">Reviewed</option>
+    </select><br><br>
+
+    <label for="userSelect">User:</label>
+    <select id="userSelect" name="userSelect" required></select><br><br>
+
+    <button type="submit">Update Status</button>
+  </form>
+
+  <h3>Add Comment</h3>
+  <!-- Form to add a new comment -->
+  <form id="addCommentForm">
+    <label for="commentText">Comment Text:</label>
+    <input type="text" id="commentText" name="commentText" required><br><br>
+    <label for="taskForComment">Task:</label>
+    <select id="taskForComment" name="taskForComment" required></select><br><br>
+    <button type="submit">Add Comment</button>
+  </form>
+
+  <script>
+    const taskList = document.getElementById('taskList');
+    const addTaskForm = document.getElementById('addTaskForm');
+    const taskDescriptionInput = document.getElementById('taskDescription');
+    const taskSelect = document.getElementById('taskSelect');
+    const userSelect = document.getElementById('userSelect');
+    const changeStatusForm = document.getElementById('changeStatusForm');
+    const statusSelect = document.getElementById('statusSelect');
+    const addCommentForm = document.getElementById('addCommentForm');
+    const commentTextInput = document.getElementById('commentText');
+    const taskForCommentSelect = document.getElementById('taskForComment');
+
+    // Fetch tasks from the API
+    async function fetchTasks() {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/tasks/');
+        if (!response.ok) {
+          throw new Error('Failed to load tasks');
+        }
+        const tasks = await response.json();
+        renderTasks(tasks);
+        populateTaskDropdown(tasks);  // Populate task dropdown
+        populateTaskForCommentDropdown(tasks);  // Populate task for comment dropdown
+      } catch (error) {
+        console.error(error);
+        alert('Error fetching tasks: ' + error.message);
+      }
+    }
+
+    // Fetch users from the API
+    async function fetchUsers() {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/users/');
+        if (!response.ok) {
+          throw new Error('Failed to load users');
+        }
+        const users = await response.json();
+        populateUserDropdown(users);  // Populate user dropdown
+      } catch (error) {
+        console.error(error);
+        alert('Error fetching users: ' + error.message);
+      }
+    }
+
+    // Render tasks
+    function renderTasks(tasks) {
+      taskList.innerHTML = '';  // Clear the current task list
+      tasks.forEach(task => {
+        const taskItem = document.createElement('li');
+        taskItem.innerHTML = `
+          <strong>${task.description}</strong> (Status: ${task.current_status})<br>
+          <ul>
+            ${task.status_history.map(status => {
+              const statusKey = Object.keys(status)[0];
+              const statusEntry = status[statusKey];
+              return `
+                <li>
+                  ${statusKey} by <strong>${statusEntry.user.username}</strong> on ${new Date(statusEntry.timestamp).toLocaleString()}
+                </li>
+              `;
+            }).join('')}
+          </ul>
+          
+          <!-- Task comments -->
+          <button onclick="toggleComments(${task.id})">Toggle Comments</button>
+          <div id="comments-${task.id}" style="display:none;">
+            <ul>
+              ${task.comments.map(comment => `
+                <li>
+                  ${comment.text} (by ${comment.user_id} on ${new Date(comment.timestamp).toLocaleString()})
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          
+          <!-- Delete task button -->
+          <button onclick="deleteTask(${task.id})">Delete Task</button>
+        `;
+        taskList.appendChild(taskItem);
+      });
+    }
+
+    // Toggle visibility of comments
+    function toggleComments(taskId) {
+      const commentsDiv = document.getElementById(`comments-${taskId}`);
+      commentsDiv.style.display = (commentsDiv.style.display === 'none') ? 'block' : 'none';
+    }
+
+    // Populate task dropdown for status change
+    function populateTaskDropdown(tasks) {
+      taskSelect.innerHTML = '';  // Clear existing options
+      tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.id;
+        option.textContent = task.description;
+        taskSelect.appendChild(option);
+      });
+    }
+
+    // Populate task dropdown for comment creation
+    function populateTaskForCommentDropdown(tasks) {
+      taskForCommentSelect.innerHTML = '';  // Clear existing options
+      tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.id;
+        option.textContent = task.description;
+        taskForCommentSelect.appendChild(option);
+      });
+    }
+
+    // Populate user dropdown
+    function populateUserDropdown(users) {
+      userSelect.innerHTML = '';  // Clear existing options
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.username;
+        userSelect.appendChild(option);
+      });
+    }
+
+    // Add a new task
+    addTaskForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      const description = taskDescriptionInput.value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/tasks/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie('access_token'),
+          },
+          body: JSON.stringify({ description }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert('Error adding task: ' + JSON.stringify(errorData, null, 2));
+          return;
+        }
+
+        // Clear the form and fetch updated task list
+        taskDescriptionInput.value = '';
+        fetchTasks();
+      } catch (error) {
+        console.error(error);
+        alert('Error adding task: ' + error.message);
+      }
+    });
+
+    // Change task status
+    changeStatusForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const taskId = taskSelect.value;
+      const status = statusSelect.value;
+      const userId = userSelect.value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/task_status_history/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie('access_token'),
+          },
+          body: JSON.stringify({
+            task: taskId,
+            status: status,
+            user_id: userId
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert('Error updating status: ' + JSON.stringify(errorData, null, 2));
+          return;
+        }
+
+        alert('Status updated successfully');
+        fetchTasks();  // Refresh task list
+      } catch (error) {
+        console.error(error);
+        alert('Error updating status: ' + error.message);
+      }
+    });
+
+    // Add a new comment
+    addCommentForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const commentText = commentTextInput.value;
+      const taskId = taskForCommentSelect.value;
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/comments/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getCookie('access_token'),
+          },
+          body: JSON.stringify({ text: commentText }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert('Error adding comment: ' + JSON.stringify(errorData, null, 2));
+          return;
+        }
+
+        // Clear the form and fetch updated task list
+        commentTextInput.value = '';
+        fetchTasks();  // Refresh task list
+      } catch (error) {
+        console.error(error);
+        alert('Error adding comment: ' + error.message);
+      }
+    });
+
+    // Delete task
+    async function deleteTask(taskId) {
+      const confirmation = confirm('Are you sure you want to delete this task?');
+      if (!confirmation) return;
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + getCookie('access_token'),
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert('Error deleting task: ' + JSON.stringify(errorData, null, 2));
+          return;
+        }
+
+        alert('Task deleted successfully');
+        fetchTasks();  // Refresh task list
+      } catch (error) {
+        console.error(error);
+        alert('Error deleting task: ' + error.message);
+      }
+    }
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Initialize the page by fetching tasks and users
+    fetchTasks();
+    fetchUsers();
+  </script>
+</body>
+</html>

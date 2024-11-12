@@ -30,6 +30,7 @@ api_urls = [  # Tried to figure out why http://127.0.0.1:8000/api/?format=api sh
 ]
 
 urlpatterns = [
+    path("", include("frontend.urls")),
     path("admin/", admin.site.urls),
     path("api/", include(api_urls)),
     path(
